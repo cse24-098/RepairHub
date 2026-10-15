@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Equipment')}"></head>
+<body class="bg-gray-100 min-h-screen">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="max-w-6xl mx-auto px-4 py-6 space-y-4">
+
+    <div th:if="${success}" class="bg-green-100 text-green-800 rounded p-3" th:text="${success}"></div>
+
+    <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-2xl font-bold">Equipment</h1>
+        <a th:if="${session.user.staff}" th:href="@{/equipment/new}"
+           class="ml-auto bg-slate-800 text-white rounded px-4 py-2 hover:bg-slate-700">+ Register equipment</a>
+    </div>
+
+    <!-- RQ09: search by name or asset tag -->
+    <form th:action="@{/equipment}" method="get" class="flex gap-2">
+        <input name="q" th:value="${q}" placeholder="Search by name or asset tag" class="border rounded px-3 py-2 w-full max-w-sm">
+        <button class="bg-white border rounded px-4 py-2">Search</button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-left">
+            <tr><th class="p-3">Asset tag</th><th class="p-3">Name</th><th class="p-3">Category</th>
+                <th class="p-3">Location</th><th class="p-3">Condition</th><th class="p-3">Status</th><th class="p-3"></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${equipmentList}" class="border-t">
+                <td class="p-3 font-mono" th:text="${e.assetTag}">ASSET-0001</td>
+                <td class="p-3" th:text="${e.name}">Name</td>
+                <td class="p-3" th:text="${e.categoryName}">Category</td>
+                <td class="p-3" th:text="${e.locationName != null} ? ${e.locationName} : '-'">Location</td>
+                <td class="p-3" th:text="${e.conditionState}">GOOD</td>
+                <td class="p-3" th:text="${e.status}">AVAILABLE</td>
+                <td class="p-3"><a th:href="@{/reports/new(equipmentId=${e.id})}" class="text-blue-700 hover:underline">Report issue</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(equipmentList)}"><td colspan="7" class="p-4 text-gray-500">No equipment found.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

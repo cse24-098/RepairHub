@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Report Details')}"></head>
+<body class="bg-gray-100 min-h-screen">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <div th:if="${success}" class="bg-green-100 text-green-800 rounded p-3" th:text="${success}"></div>
+    <div th:if="${error}" class="bg-red-100 text-red-800 rounded p-3" th:text="${error}"></div>
+
+    <div class="bg-white rounded-lg shadow p-6 space-y-3">
+        <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-bold" th:text="${report.referenceNo}">MR-...</h1>
+            <span th:replace="~{fragments/layout :: statusBadge(${report.status})}"></span>
+            <span th:replace="~{fragments/layout :: priorityBadge(${report.priority})}"></span>
+        </div>
+        <dl class="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <div><dt class="text-gray-500">Equipment</dt><dd th:text="${report.equipmentName}"></dd></div>
+            <div><dt class="text-gray-500">Issue type</dt><dd th:text="${report.issueType}"></dd></div>
+            <div><dt class="text-gray-500">Reported by</dt><dd th:text="${report.teacherName}"></dd></div>
+            <div><dt class="text-gray-500">Submitted</dt>
+                <dd th:text="${#temporals.format(report.createdAt, 'dd MMM yyyy HH:mm')}"></dd></div>
+            <div><dt class="text-gray-500">Location details</dt>
+                <dd th:text="${report.locationDetails != null and !#strings.isEmpty(report.locationDetails)} ? ${report.locationDetails} : '-'"></dd></div>
+        </dl>
+        <div>
+            <div class="text-gray-500 text-sm">Description</div>
+            <p class="whitespace-pre-line" th:text="${report.description}"></p>
+        </div>
+    </div>
+
+    <!-- Status history (RQ04 / RQ06) -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="font-semibold mb-3">Status history</h2>
+        <ul class="space-y-3 text-sm">
+            <li th:each="h : ${history}" class="border-l-4 border-slate-300 pl-3">
+                <div>
+                    <span th:text="${h.oldStatus != null} ? ${h.oldStatus + ' → ' + h.newStatus} : ${h.newStatus}"></span>
+                    <span class="text-gray-500"
+                          th:text="${' · ' + h.changedBy + ' · ' + #temporals.format(h.changedAt, 'dd MMM yyyy HH:mm')}"></span>
+                </div>
+                <div th:text="${h.comment}"></div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Staff only: change the status (RQ06) -->
+    <div th:if="${session.user.staff}" class="bg-white rounded-lg shadow p-6">
+        <h2 class="font-semibold mb-3">Update status</h2>
+        <form th:action="@{/reports/{id}/status(id=${report.id})}" method="post" class="space-y-3">
+            <select name="newStatus" required class="border rounded px-3 py-2">
+                <option value="">-- new status --</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+            </select>
+            <textarea name="comment" rows="3" required placeholder="Comment (required)" class="w-full border rounded px-3 py-2"></textarea>
+            <button type="submit" class="bg-slate-800 text-white rounded px-5 py-2 hover:bg-slate-700">Update</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

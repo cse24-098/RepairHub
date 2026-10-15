@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Register Equipment')}"></head>
+<body class="bg-gray-100 min-h-screen">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="max-w-2xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-4">Register equipment</h1>
+
+    <!-- "form" is a Map of what the user typed, so the fields stay filled after an error -->
+    <form th:action="@{/equipment/save}" method="post" class="bg-white rounded-lg shadow p-6 space-y-4">
+
+        <div th:if="${error}" class="bg-red-100 text-red-800 rounded p-3 text-sm" th:text="${error}"></div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Asset tag *</label>
+            <input name="assetTag" th:value="${form['assetTag']}" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1">Name *</label>
+            <input name="name" th:value="${form['name']}" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Category *</label>
+                <select name="categoryId" required class="w-full border rounded px-3 py-2">
+                    <option value="">-- choose --</option>
+                    <option th:each="o : ${categories}" th:value="${o.value}" th:text="${o.label}"
+                            th:selected="${o.value == form['categoryId']}"></option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Location</label>
+                <select name="locationId" class="w-full border rounded px-3 py-2">
+                    <option value="">-- none --</option>
+                    <option th:each="o : ${locations}" th:value="${o.value}" th:text="${o.label}"
+                            th:selected="${o.value == form['locationId']}"></option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Serial number</label>
+                <input name="serialNumber" th:value="${form['serialNumber']}" class="w-full border rounded px-3 py-2">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Condition</label>
+                <select name="conditionState" class="w-full border rounded px-3 py-2">
+                    <option th:each="c : ${conditions}" th:value="${c}" th:text="${c}"
+                            th:selected="${c == form['conditionState']}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" class="bg-slate-800 text-white rounded px-5 py-2 hover:bg-slate-700">Save</button>
+            <a th:href="@{/equipment}" class="px-5 py-2 border rounded bg-white">Cancel</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>
