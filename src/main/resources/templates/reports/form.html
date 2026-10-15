@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Report an Issue')}"></head>
+<body class="bg-gray-100 min-h-screen">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="max-w-2xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-4">Report an equipment issue</h1>
+
+    <form th:action="@{/reports/save}" th:object="${reportForm}" method="post"
+          class="bg-white rounded-lg shadow p-6 space-y-4">
+
+        <!-- RQ01: duplicate warning -->
+        <div th:if="${duplicateWarning}" class="bg-yellow-100 text-yellow-900 rounded p-3 text-sm space-y-2">
+            <p>A report for this equipment was already submitted in the last 7 days.</p>
+            <label class="flex items-center gap-2">
+                <input type="checkbox" th:field="*{confirmDuplicate}"> Submit anyway, this is a different issue
+            </label>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Equipment *</label>
+            <select th:field="*{equipmentId}" class="w-full border rounded px-3 py-2">
+                <option value="">-- choose equipment --</option>
+                <option th:each="e : ${equipmentList}" th:value="${e.id}" th:text="${e.assetTag + ' - ' + e.name}"></option>
+            </select>
+            <p th:if="${#fields.hasErrors('equipmentId')}" th:errors="*{equipmentId}" class="text-red-600 text-sm"></p>
+            <!-- TODO RQ12: scan the equipment's QR code to fill this field -->
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Issue type *</label>
+                <select th:field="*{issueType}" class="w-full border rounded px-3 py-2">
+                    <option value="">-- choose --</option>
+                    <option th:each="t : ${issueTypes}" th:value="${t}" th:text="${t}"></option>
+                </select>
+                <p th:if="${#fields.hasErrors('issueType')}" th:errors="*{issueType}" class="text-red-600 text-sm"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Priority *</label>
+                <select th:field="*{priority}" class="w-full border rounded px-3 py-2">
+                    <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">Description *</label>
+            <textarea th:field="*{description}" rows="4" class="w-full border rounded px-3 py-2"></textarea>
+            <p th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-red-600 text-sm"></p>
+        </div>
+
+        <!-- RQ03: location -->
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Location</label>
+                <select th:field="*{locationId}" class="w-full border rounded px-3 py-2">
+                    <option value="">-- not specified --</option>
+                    <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.displayName}"></option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Extra location details</label>
+                <input th:field="*{locationDetails}" class="w-full border rounded px-3 py-2">
+            </div>
+        </div>
+        <input type="hidden" th:field="*{latitude}">
+        <input type="hidden" th:field="*{longitude}">
+        <!-- TODO RQ03: JavaScript (navigator.geolocation) fills latitude/longitude; Leaflet map preview -->
+        <!-- TODO RQ02: file input for up to 3 images or 1 video (form needs enctype="multipart/form-data") -->
+
+        <div class="flex gap-3">
+            <button type="submit" class="bg-slate-800 text-white rounded px-5 py-2 hover:bg-slate-700">Submit report</button>
+            <a th:href="@{/reports/mine}" class="px-5 py-2 border rounded bg-white">Cancel</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

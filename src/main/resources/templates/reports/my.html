@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Reports')}"></head>
+<body class="bg-gray-100 min-h-screen">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="max-w-6xl mx-auto px-4 py-6 space-y-4">
+
+    <div th:if="${success}" class="bg-green-100 text-green-800 rounded p-3" th:text="${success}"></div>
+
+    <div class="flex items-center">
+        <h1 class="text-2xl font-bold">My reports</h1>
+        <a th:href="@{/reports/new}" class="ml-auto bg-slate-800 text-white rounded px-4 py-2 hover:bg-slate-700">+ Report an issue</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-left">
+            <tr><th class="p-3">Reference</th><th class="p-3">Equipment</th><th class="p-3">Description</th>
+                <th class="p-3">Priority</th><th class="p-3">Status</th><th class="p-3">Submitted</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${reports}" class="border-t">
+                <td class="p-3"><a th:href="@{/reports/{id}(id=${r.id})}" class="text-blue-700 hover:underline" th:text="${r.referenceNo}">MR-...</a></td>
+                <td class="p-3" th:text="${r.equipment.name}">Equipment</td>
+                <td class="p-3 max-w-xs truncate" th:text="${r.description}">Description</td>
+                <td class="p-3"><span th:replace="~{fragments/layout :: priorityBadge(${r.priority})}"></span></td>
+                <td class="p-3"><span th:replace="~{fragments/layout :: statusBadge(${r.status})}"></span></td>
+                <td class="p-3" th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy HH:mm')}">date</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(reports)}"><td colspan="6" class="p-4 text-gray-500">You have not submitted any reports yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- TODO RQ04/RQ09: sort, search by reference/keyword/date, notifications list -->
+</main>
+</body>
+</html>
