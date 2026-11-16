@@ -182,4 +182,53 @@ public class ReportDao {
         }
         // TODO RQ06/RQ07: create a notification and send an email to the teacher
     }
+
+    // --- RQ07 Notification Helpers ---
+
+    /** Fetches the email address and name of the teacher who submitted the report. */
+    public Map<String, String> getTeacherInfoForReport(long reportId) {
+        return jdbc.queryForObject(
+                "SELECT u.email, u.full_name FROM maintenance_reports r " +
+                        "JOIN users u ON u.user_id = r.teacher_id WHERE r.report_id = ?",
+                (rs, rowNum) -> {
+                    Map<String, String> map = new java.util.HashMap<>();
+                    map.put("email", rs.getString("email"));
+                    map.put("name", rs.getString("full_name"));
+                    return map;
+                }, reportId);
+    }
+
+    /** Saves an in-app notification to the database. */
+    public void createNotification(long userId, long reportId, String message) {
+        jdbc.update("INSERT INTO notifications (user_id, report_id, message, created_at) " +
+                "VALUES (?, ?, ?, NOW())", userId, reportId, message);
+    }
+
+    /** Fetches the teacher_id for a report (so we know who to notify). */
+    public long getTeacherIdForReport(long reportId) {
+        return jdbc.queryForObject("SELECT teacher_id FROM maintenance_reports WHERE report_id = ?", Long.class, reportId);
+    }
+
+    /** RQ07: Fetch unread notifications for a user. */
+    public List<Map<String, Object>> findUnreadNotifications(long userId) {
+        return jdbc.query(
+                "SELECT n.notification_id, n.message, n.created_at, r.reference_no " +
+                        "FROM notifications n " +
+                        "LEFT JOIN maintenance_reports r ON n.report_id = r.report_id " +
+                        "WHERE n.user_id = ? AND n.is_read = FALSE " +
+                        "ORDER BY n.created_at DESC",
+                (rs, rowNum) -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", rs.getLong("notification_id"));
+                    map.put("message", rs.getString("message"));
+                    map.put("createdAt", rs.getTimestamp("created_at").toLocalDateTime());
+                    map.put("referenceNo", rs.getString("reference_no"));
+                    return map;
+                }, userId);
+    }
+
+    /** RQ07: Mark a notification as read. */
+    public void markNotificationAsRead(long notificationId) {
+        jdbc.update("UPDATE notifications SET is_read = TRUE WHERE notification_id = ?", notificationId);
+    }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/ems-simple/db/00_setup_user.sql" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+    <file url="file://$PROJECT_DIR$/ems-simple/db/01_schema.sql" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+    <file url="file://$PROJECT_DIR$/ems-simple/db/02_seed.sql" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+    <file url="file://$PROJECT_DIR$/ems-simple/src/main/java/com/ems/dao/EquipmentDao.java" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+    <file url="file://$PROJECT_DIR$/ems-simple/src/main/java/com/ems/dao/LookupDao.java" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+    <file url="file://$PROJECT_DIR$/ems-simple/src/main/java/com/ems/dao/ReportDao.java" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+    <file url="file://$PROJECT_DIR$/ems-simple/src/main/java/com/ems/dao/UserDao.java" value="93006059-d88e-4abf-8a57-6bf78231a4a2" />
+  </component>
+</project>

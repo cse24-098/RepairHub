@@ -4,6 +4,7 @@ import com.ems.dao.LookupDao;
 import com.ems.dao.ReportDao;
 import com.ems.model.Report;
 import com.ems.model.User;
+import com.ems.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,13 +22,15 @@ public class ReportController {
     private static final List<String> ISSUE_TYPES = List.of("HARDWARE_FAULT", "SOFTWARE", "ELECTRICAL", "DAMAGE", "OTHER");
     private static final List<String> PRIORITIES = List.of("LOW", "MEDIUM", "HIGH", "URGENT");
     private static final List<String> STATUSES = List.of("PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED");
+    private final NotificationService notificationService; //kamo added this
 
     private final ReportDao reportDao;
     private final LookupDao lookupDao;
 
-    public ReportController(ReportDao reportDao, LookupDao lookupDao) {
+    public ReportController(ReportDao reportDao, LookupDao lookupDao,  NotificationService notificationService) {
         this.reportDao = reportDao;
         this.lookupDao = lookupDao;
+        this.notificationService = notificationService; //i also added this
     }
 
     /** RQ04: the logged-in teacher's own reports. */
@@ -116,7 +119,8 @@ public class ReportController {
                                @SessionAttribute("user") User user,
                                RedirectAttributes redirect) {
 
-        if (reportDao.findById(id, user.getSchoolId()) == null) {
+        Report report = reportDao.findById(id, user.getSchoolId());
+        if (report == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
@@ -127,7 +131,12 @@ public class ReportController {
         } else {
             try {
                 reportDao.updateStatus(id, user.getId(), newStatus, comment.trim());
-                redirect.addFlashAttribute("success", "Status updated.");
+
+                //
+                notificationService.sendStatusUpdateNotification(id, newStatus, comment.trim(), report.getReferenceNo()); //also this
+                //
+
+                redirect.addFlashAttribute("success", "Status updated and notification sent.");
             } catch (IllegalArgumentException e) {
                 redirect.addFlashAttribute("error", e.getMessage());
             }
@@ -145,5 +154,12 @@ public class ReportController {
         model.addAttribute("issueTypes", ISSUE_TYPES);
         model.addAttribute("priorities", PRIORITIES);
         return "reports/form";
+    }
+
+    /** RQ07: Mark a notification as read. */
+    @PostMapping("/notifications/{id}/read")
+    public String markNotificationRead(@PathVariable long id, RedirectAttributes redirect) {
+        reportDao.markNotificationAsRead(id);
+        return "redirect:/"; // Reloads the current page (we'll change this to redirect back to where they were later if needed)
     }
 }
