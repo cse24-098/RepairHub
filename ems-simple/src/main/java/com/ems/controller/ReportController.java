@@ -162,4 +162,23 @@ public class ReportController {
         reportDao.markNotificationAsRead(id);
         return "redirect:/"; // Reloads the current page (we'll change this to redirect back to where they were later if needed)
     }
+
+    /** RQ10: Export all reports to CSV */
+    @GetMapping("/dashboard/export")
+    public void exportToCsv(@SessionAttribute("user") User user,
+                            jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+
+        // 1. Get the CSV string
+        String csvData = reportDao.generateCsv(user.getSchoolId());
+
+        // 2. Set up the file download
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"RepairHub_Reports.csv\"");
+
+        // 3. Write the data to the response
+        java.io.PrintWriter writer = response.getWriter();
+        writer.write(csvData);
+        writer.flush();
+        writer.close();
+    }
 }

@@ -66,6 +66,41 @@ public class ReportDao {
                 ReportDao::map, schoolId, status);
     }
 
+    /** RQ09: Search reports by keyword (reference, teacher, equipment, or description). */
+    public List<Report> searchReports(long schoolId, String status, String keyword) {
+        StringBuilder sql = new StringBuilder(SELECT + "WHERE r.school_id = ? ");
+
+        // Add status filter if selected
+        if (status != null && !status.isEmpty()) {
+            sql.append("AND r.status = ? ");
+        }
+
+        // Add keyword filter if typed
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (r.reference_no LIKE ? OR u.full_name LIKE ? OR e.name LIKE ? OR r.description LIKE ?) ");
+        }
+
+        sql.append("ORDER BY r.created_at DESC");
+
+        // Build the arguments list for the query
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        params.add(schoolId);
+
+        if (status != null && !status.isEmpty()) {
+            params.add(status);
+        }
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String likeKeyword = "%" + keyword.trim() + "%";
+            params.add(likeKeyword); // reference_no
+            params.add(likeKeyword); // teacher name
+            params.add(likeKeyword); // equipment name
+            params.add(likeKeyword); // description
+        }
+
+        return jdbc.query(sql.toString(), ReportDao::map, params.toArray());
+    }
+
     /** Returns the report, or null if it does not exist in this school. */
     public Report findById(long id, long schoolId) {
         List<Report> list = jdbc.query(SELECT + "WHERE r.report_id = ? AND r.school_id = ?",
@@ -230,5 +265,30 @@ public class ReportDao {
     /** RQ07: Mark a notification as read. */
     public void markNotificationAsRead(long notificationId) {
         jdbc.update("UPDATE notifications SET is_read = TRUE WHERE notification_id = ?", notificationId);
+    }
+
+    /** RQ10: Fetch all reports for a school as CSV data. */
+    public String generateCsv(long schoolId) {
+        String sql = SELECT + "WHERE r.school_id = ? ORDER BY r.created_at DESC";
+        List<Report> reports = jdbc.query(sql, ReportDao::map, schoolId);
+
+        StringBuilder csv = new StringBuilder();
+        // Headers
+        csv.append("Reference No,Teacher,Equipment,Issue Type,Priority,Status,Description,Created At\n");
+
+        for (Report r : reports) {
+            // Wrap fields in quotes to prevent commas in descriptions from breaking the CSV
+            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                    r.getReferenceNo(),
+                    r.getTeacherName(),
+                    r.getEquipmentName(),
+                    r.getIssueType(),
+                    r.getPriority(),
+                    r.getStatus(),
+                    r.getDescription().replace("\"", "\"\""), // escape quotes
+                    r.getCreatedAt().toString()
+            ));
+        }
+        return csv.toString();
     }
 }

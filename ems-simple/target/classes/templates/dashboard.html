@@ -5,7 +5,18 @@
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-    <h1 class="text-2xl font-bold">Dashboard</h1>
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-bold">Dashboard</h1>
+
+        <!-- RQ08 / RQ10: CSV Export Button -->
+        <a th:href="@{/dashboard/export}"
+           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center shadow-sm transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export to CSV
+        </a>
+    </div>
 
     <!-- RQ11: unresolved count and counts per status -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -22,7 +33,40 @@
         <div class="bg-white rounded-lg p-4 shadow"><div class="text-sm text-gray-500">Rejected</div>
             <div class="text-2xl font-bold" th:text="${counts['REJECTED']}">0</div></div>
     </div>
-    <!-- TODO RQ05/RQ08: charts with Chart.js -->
+
+
+    <!-- RQ05/RQ08: Charts with Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <div class="bg-white rounded-lg p-4 shadow mb-6">
+        <h2 class="text-lg font-bold mb-4 text-gray-700">Reports by Status</h2>
+        <div class="w-full h-64">
+            <!-- The canvas is where Chart.js draws the graph -->
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+
+    <!-- RQ09: Search Bar -->
+    <form th:action="@{/dashboard}" method="get" class="flex gap-2">
+        <!-- Keep the status filter active if they search -->
+        <input type="hidden" name="status" th:value="${selectedStatus}" />
+
+        <input type="text" name="keyword" th:value="${keyword}"
+               placeholder="Search by reference, teacher, or equipment..."
+               class="border border-gray-300 rounded px-4 py-2 text-sm w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-slate-500">
+
+        <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded text-sm font-semibold transition">
+            Search
+        </button>
+
+        <!-- Show a "Clear" button only if a search is active -->
+        <a th:if="${keyword != null and !keyword.isEmpty()}" th:href="@{/dashboard(status=${selectedStatus})}"
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded text-sm font-semibold transition">
+            Clear
+        </a>
+    </form>
+
 
     <!-- Filter by status -->
     <div class="flex flex-wrap gap-2 text-sm">
@@ -52,5 +96,50 @@
         </table>
     </div>
 </main>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get the data from the Java backend
+        const pending = /*[[${counts['PENDING']}]]*/ 0;
+        const inProgress = /*[[${counts['IN_PROGRESS']}]]*/ 0;
+        const resolved = /*[[${counts['RESOLVED']}]]*/ 0;
+        const rejected = /*[[${counts['REJECTED']}]]*/ 0;
+
+        // Set up Chart.js
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Pending', 'In Progress', 'Resolved', 'Rejected'],
+                datasets: [{
+                    label: 'Number of Reports',
+                    data: [pending, inProgress, resolved, rejected],
+                    backgroundColor: [
+                        '#FDE047', // Yellow (Pending)
+                        '#60A5FA', // Blue (In Progress)
+                        '#4ADE80', // Green (Resolved)
+                        '#9CA3AF'  // Gray (Rejected)
+                    ],
+                    borderRadius: 6,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // Hide the legend since the colors are obvious
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 } // Make sure it only shows whole numbers
+                    }
+                }
+            }
+        });
+    });
+</script>
+
 </body>
 </html>

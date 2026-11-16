@@ -22,9 +22,10 @@ public class DashboardController {
         this.reportDao = reportDao;
     }
 
-    /** RQ05 + RQ11: staff dashboard. Example URL: /dashboard?status=PENDING */
+    /** RQ05 + RQ11: staff dashboard. Example URL: /dashboard?status=PENDING&keyword=projector */
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(required = false) String status,
+                            @RequestParam(required = false) String keyword, // <-- ADDED THIS
                             @SessionAttribute("user") User user,
                             Model model) {
 
@@ -37,9 +38,14 @@ public class DashboardController {
 
         model.addAttribute("counts", counts);
         model.addAttribute("unresolved", unresolved);
-        model.addAttribute("reports", reportDao.findBySchool(user.getSchoolId(), status));
+
+        // CHANGED THIS LINE TO USE THE NEW SEARCH METHOD
+        model.addAttribute("reports", reportDao.searchReports(user.getSchoolId(), status, keyword));
+
         model.addAttribute("statuses", STATUSES);
         model.addAttribute("selectedStatus", status);
+        model.addAttribute("keyword", keyword); // <-- ADDED THIS so the search box remembers the text
+
         return "dashboard";
     }
 }
